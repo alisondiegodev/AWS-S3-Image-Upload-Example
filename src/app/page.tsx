@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Image as ImageIcon } from "lucide-react";
+import { getSignedURL } from "./actions";
 
 export default function UploadImage() {
   const [content, setContent] = useState("");
@@ -17,8 +18,24 @@ export default function UploadImage() {
     e.preventDefault();
     setStatusMessage("Creating");
     setLoading(true);
-
+    
     console.log(content, file);
+
+    
+    if (file) {
+      const signedURL = await getSignedURL(file?.name)
+      const url = signedURL.success.url
+      const response = await fetch(url, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type
+        }
+      })
+      console.log("Link: " + response.url.split("?X-")[0])
+    }
+
+    
     setStatusMessage("Created");
     setLoading(false);
   };
@@ -78,7 +95,8 @@ export default function UploadImage() {
 
           <div className="flex justify-end w-full mt-8">
             <button
-              className=" hover:shadow-xl text-gray-800 font-semibold shadow-md py-2 px-4 rounded"
+              disabled={buttonDisabled ? true : false}
+              className={`${buttonDisabled ? "opacity-60" :"hover:shadow-xl"}  text-gray-800 font-semibold shadow-md py-2 px-4 rounded`}
               type="submit"
             >
               Post
